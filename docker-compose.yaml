@@ -6,7 +6,7 @@
 services:
   mongodb:
     container_name: graylog_mongodb-01
-    hostname: "graylog_mongodb-01"
+    hostname: "mongodb"
     image: "mongo:6.0"
     healthcheck:
       test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
@@ -23,7 +23,7 @@ services:
   datanode:
     container_name: graylog-datanode-01
     image: "${DATANODE_IMAGE:-graylog/graylog-datanode:6.0}"
-    hostname: "graylog-datanode-01"
+    hostname: "datanode"
     environment:
       GRAYLOG_DATANODE_NODE_ID_FILE: "/var/lib/graylog-datanode/node-id"
       GRAYLOG_DATANODE_PASSWORD_SECRET: "${GRAYLOG_PASSWORD_SECRET:?Please configure GRAYLOG_PASSWORD_SECRET in the .env file}"
@@ -46,7 +46,7 @@ services:
 
   graylog:
     container_name: graylog-server-01
-    hostname: "graylog-server-01"
+    hostname: "graylog"
     image: "${GRAYLOG_IMAGE:-graylog/graylog:6.0}"
     depends_on:
       mongodb:
@@ -87,7 +87,7 @@ services:
   
   geoipupdate:
     container_name: graylog_geoipupdate
-    hostname: "graylog_geoipupdate"
+    hostname: "geoipupdate"
     image: maxmindinc/geoipupdate
     restart: unless-stopped
     environment:
