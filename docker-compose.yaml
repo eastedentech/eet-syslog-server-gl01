@@ -5,6 +5,8 @@
 
 services:
   mongodb:
+    container_name: graylog_mongodb-01
+    hostname: "graylog_mongodb-01"
     image: "mongo:6.0"
     healthcheck:
       test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
@@ -19,8 +21,9 @@ services:
   # For DataNode setup, graylog starts with a preflight UI, this is a change from just using OpenSearch/Elasticsearch.
   # Please take a look at the README at the top of this repo or the regular docs for more info.
   datanode:
+    container_name: graylog-datanode-01
     image: "${DATANODE_IMAGE:-graylog/graylog-datanode:6.0}"
-    hostname: "datanode"
+    hostname: "graylog-datanode-01"
     environment:
       GRAYLOG_DATANODE_NODE_ID_FILE: "/var/lib/graylog-datanode/node-id"
       GRAYLOG_DATANODE_PASSWORD_SECRET: "${GRAYLOG_PASSWORD_SECRET:?Please configure GRAYLOG_PASSWORD_SECRET in the .env file}"
@@ -42,7 +45,8 @@ services:
     restart: "on-failure"
 
   graylog:
-    hostname: "server"
+    container_name: graylog-server-01
+    hostname: "graylog-server-01"
     image: "${GRAYLOG_IMAGE:-graylog/graylog:6.0}"
     depends_on:
       mongodb:
@@ -78,8 +82,24 @@ services:
       - "graylog_data:/usr/share/graylog/data"
       - "graylog_journal:/usr/share/graylog/data/journal"
       - "graylog_etc:/etc/graylog"
-      # - "graylog_geolite2:/etc/graylog/server"
+      - "graylog_geolite2:/usr/share/GeoIP:ro"
     restart: "unless-stopped"
+  
+  geoipupdate:
+    container_name: graylog_geoipupdate
+    hostname: "graylog_geoipupdate"
+    image: maxmindinc/geoipupdate
+    restart: unless-stopped
+    environment:
+      GEOIPUPDATE_ACCOUNT_ID: "${GEOIPUPDATE_ACCOUNT_ID:?Please configure GEOIPUPDATE_ACCOUNT_ID in the .env file}"
+      GEOIPUPDATE_LICENSE_KEY: "${GEOIPUPDATE_LICENSE_KEY:?Please configure GEOIPUPDATE_LICENSE_KEY in the .env file}"
+      GEOIPUPDATE_EDITION_IDS: "${GEOIPUPDATE_EDITION_IDS:?Please configure GEOIPUPDATE_EDITION_IDS in the .env file}"
+      GEOIPUPDATE_FREQUENCY: "${GEOIPUPDATE_FREQUENCY:?Please configure GEOIPUPDATE_FREQUENCY in the .env file}"
+      GEOIPUPDATE_VERBOSE: "${GEOIPUPDATE_VERBOSE:?Please configure GEOIPUPDATE_VERBOSE in the .env file}"
+    # networks:
+    #   - geoipupdate
+    volumes:
+      - "graylog_geolite2:/usr/share/GeoIP"
 
 volumes:
   mongodb_data:
@@ -87,4 +107,4 @@ volumes:
   graylog_data:
   graylog_journal:
   graylog_etc:
-  # graylog_geolite2:
+  graylog_geolite2:
