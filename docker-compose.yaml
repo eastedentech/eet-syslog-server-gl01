@@ -11,7 +11,7 @@ services:
       interval: 10s
       timeout: 10s
       retries: 5
-      start_period: 40s
+      start_period: 15s
     volumes:
       - "mongodb_data:/data/db"
     restart: "unless-stopped"
